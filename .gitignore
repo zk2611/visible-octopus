@@ -1,0 +1,7 @@
+# vscode config (contains remote deploy credentials)
+.vscode
+
+# misc
+.DS_Store
+
+node_modules
