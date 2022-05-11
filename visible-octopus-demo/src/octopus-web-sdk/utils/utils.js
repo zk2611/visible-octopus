@@ -1,5 +1,4 @@
 import uaParser from 'ua-parser-js';
-import getXPath from 'get-xpath';
 
 const getBoundingClientRect = (el) => {
   const rect = el.getBoundingClientRect();
