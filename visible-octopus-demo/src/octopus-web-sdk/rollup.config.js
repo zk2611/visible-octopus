@@ -3,6 +3,7 @@ import { nodeResolve } from '@rollup/plugin-node-resolve';  // 加载通过npm�
 import { babel } from '@rollup/plugin-babel';								// 转译插件，ES6转ES5
 import commonjs from '@rollup/plugin-commonjs';							// 加载commonjs模块
 import { terser } from "rollup-plugin-terser";							// 压缩
+import livereload from 'rollup-plugin-livereload';          // 热更新
 
 export default {
   input: './index.js',
@@ -18,5 +19,6 @@ export default {
     commonjs(),
     babel({ babelHelpers: 'bundled' }),
     terser(),
+    livereload(),
   ]
 };

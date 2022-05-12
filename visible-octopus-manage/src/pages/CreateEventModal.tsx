@@ -25,7 +25,8 @@ const CreateEventModal = ({visible, onOk, onCancel, initialValues = {}, ...rest}
       .then(async (values) => {
         const returnValue = {
           ...values,
-          id: createRandomId()
+          id: createRandomId(),
+          url: document.location.href,
         };
         return returnValue;
       })

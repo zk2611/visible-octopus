@@ -21,6 +21,7 @@ const OctopusEvent = new Schema({
   'eventName': { type: String, require: true },
   'xpath': { type: String, require: true },
   'isHidden': { type: Boolean, require: false },
+  'url': { type: String, require: true },
 })
 
 const Event = mongoose.model('Event', OctopusEvent);

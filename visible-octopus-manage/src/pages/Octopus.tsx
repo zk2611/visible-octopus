@@ -25,7 +25,7 @@ const Octopus = () => {
   const [selectedEl, setSelectedEl] = useState(null);
   useEffect(() => {
     function receiveMessage (e: MessageEvent) {
-      if (e.origin === "http://localhost:3000") return;
+      if (e.origin === document.location.origin) return;
       if (e.data && typeof e.data === 'object' && 'logData' in e.data) {
         // message.info(JSON.stringify(e.data.logData));
         console.log(e.data.logData.xpath)
@@ -45,14 +45,15 @@ const Octopus = () => {
   const iframeEl = useRef<HTMLIFrameElement>(null);
   const [isIframeLoaded, setIsIframeLoaded] = useState<boolean>(false);
   const handleIframeLoad = useCallback(() => { setIsIframeLoaded(true); }, []);
+  const [updateFlag, setUpdateFlag] = useState(1);
+
   useEffect(() => {
     if (!octMode || !iframeEl || !targetUrl || !isIframeLoaded) return;
-    console.log('start')
     const receiver = iframeEl?.current?.contentWindow;
-    receiver && receiver.postMessage({ mode: octMode, highlight: isHighlightEl }, targetUrl);
-  }, [octMode, targetUrl, isHighlightEl, isIframeLoaded]);
+    receiver && receiver.postMessage({ mode: octMode, highlight: isHighlightEl, update: !!updateFlag }, targetUrl);
+  }, [octMode, targetUrl, isHighlightEl, isIframeLoaded, updateFlag]);
 
-  
+
   const { modalVisible, closeModal, openModal, initialValues } = useModal();
   const handleCreateEventOk = useCallback(async (values) => {
     console.log('values', values);
@@ -61,6 +62,8 @@ const Octopus = () => {
     const { code, msg } = res;
     if (code === 200) {
       message.success('新建事件成功');
+      // 成功之后要告诉sdk去拉取最新的埋点
+      setUpdateFlag(pre => pre + 1);
       closeModal();
     } else {
       message.error(msg.toString() || '新建事件失败')

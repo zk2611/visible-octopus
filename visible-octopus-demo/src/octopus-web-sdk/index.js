@@ -1,4 +1,3 @@
-import getXPath from 'get-xpath';
 import { MODE, DOM_HOVER_MARK_ID, DOM_HIGHLIGHT_MARK_ID } from './utils/const';
 import eventUtil from './utils/eventUtil';
 import { getBoundingClientRect, getPlatform, getMXPath, getElByXPath, reportData } from './utils/utils';
@@ -11,10 +10,13 @@ class AutoOctopus {
     this.isHighlight = false;
     this.targetWindow = null;
     this.targetOrigin = null;
-    this.eventList = []
+    this.eventList = [];
+
     this.initMessageListener();
-    this.getEventList();
-    this.addClickListener();
+    this.initIntersectionObserver();
+    this.initClickListener();
+
+    this.init();
   }
 
   initMessageListener = () => {
@@ -26,7 +28,7 @@ class AutoOctopus {
       this.targetOrigin = e.origin;
       if (e.data) {
         try {
-          const { mode, highlight } = e.data;
+          const { mode, highlight, update } = e.data;
           if (mode === MODE.OCTOPUS) {
             this.mode = mode;
             this.addDivDOM(DOM_HOVER_MARK_ID);
@@ -44,11 +46,19 @@ class AutoOctopus {
             this.isHighlight = false;
             this.removeDivDOM(DOM_HIGHLIGHT_MARK_ID);
           }
+          if (update) {
+            this.getEventList();
+          }
         } catch (e) {
           console.log(e);
         }
       }
     });
+  }
+
+  init = () => {
+    this.getEventList();
+    eventUtil.addEvent(document.body, 'click', this.clickHandler);
   }
 
   // 添加 domInfo div
@@ -100,10 +110,6 @@ class AutoOctopus {
     }
   }
 
-  /* 监听 onclick 事件 */
-  addClickListener = () => {
-    eventUtil.addEvent(document.body, 'click', this.clickHandler);
-  }
 
   // removeClickListener = () => {
   //   eventUtil.removeEvent(document.body, 'click', this.clickHandler);
@@ -112,7 +118,6 @@ class AutoOctopus {
   clickHandler = (e) => {
     console.log('触发click')
     try {
-      eventUtil.stopPropagation(e);
       const targetEl = eventUtil.getTarget(e);
       const event = eventUtil.getEvent(e);
       const logData = this.getLogData(event);
@@ -121,6 +126,8 @@ class AutoOctopus {
       // console.log(logData)
       // 埋点模式下高亮元素并告知埋点平台
       if (this.mode === MODE.OCTOPUS) {
+        eventUtil.stopPropagation(e);
+        eventUtil.preventDefault(e);
         console.log('埋点模式')
         this.highlightHoverElement(event, targetEl);
         this.targetWindow.postMessage({ logData }, this.targetOrigin);
@@ -176,10 +183,10 @@ class AutoOctopus {
     for (let i = 0; i < this.eventList.length; i++) {
       const { id, xpath } = this.eventList[i];
       let highlightDiv = this.addHighlightDiv(id);
-      if (!highlightDiv) return;
+      if (!highlightDiv) continue;
       highlightDiv.innerText = i + 1;
       let el = getElByXPath(xpath);
-      if (!el) return;
+      if (!el) continue;
       const {width, height, top, left, scrollTop, scrollLeft} = getBoundingClientRect(el);
       el = null;
       highlightDiv.setAttribute('style', `
