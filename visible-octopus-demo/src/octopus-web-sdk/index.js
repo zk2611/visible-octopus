@@ -1,4 +1,4 @@
-import { MODE, DOM_HOVER_MARK_ID, DOM_HIGHLIGHT_MARK_ID } from './utils/const';
+import { MODE, DOM_HOVER_MARK_ID, DOM_HIGHLIGHT_MARK_ID, ORIGIN_URL, SERVER_URL } from './utils/const';
 import eventUtil from './utils/eventUtil';
 import { getBoundingClientRect, getPlatform, getMXPath, getElByXPath, reportData } from './utils/utils';
 
@@ -20,7 +20,7 @@ class AutoOctopus {
 
   initMessageListener = () => {
     eventUtil.addEvent(window, 'message', (e) => {
-      if (e.origin !== "http://localhost:3000") return;
+      if (e.origin !== ORIGIN_URL) return;
       console.log('B received message', e.data)
       e.source.postMessage('hello, I have received message', e.origin);
       this.targetWindow = e.source;
@@ -75,7 +75,7 @@ class AutoOctopus {
         const logData = this.getLogDataByEl(entry.target);
         console.log('show logData', logData);
         if (this.mode !== MODE.OCTOPUS) {
-          this.targetWindow.postMessage({ type: 'report', logData }, this.targetOrigin);
+          this.targetWindow && this.targetWindow.postMessage({ type: 'report', logData }, this.targetOrigin);
         }
         // 上报曝光埋点
       }
@@ -177,7 +177,7 @@ class AutoOctopus {
         if (eventData) {
           console.log('eventData', eventData);
           console.log('上报埋点信息', logData);
-          reportData('http://localhost:9000/reportData/', logData);
+          reportData(`${SERVER_URL}/reportData/`, logData);
           this.targetWindow.postMessage({ type: 'report', logData, eventData }, this.targetOrigin);
         }
 
@@ -336,7 +336,7 @@ class AutoOctopus {
 
   getEventList = async () => {
 
-    const res = await fetch('http://localhost:9000/getEventList').then((res) => res.json());
+    const res = await fetch(`${SERVER_URL}/getEventList`).then((res) => res.json());
     const { code, msg, data } = res;
     console.log('getEventList', data)
     if (code === 200) {

@@ -26,8 +26,8 @@ function App() {
       </div>
       <a href="http://www.baidu.com" target="_blank">测试a标签跳转链接</a>
 
-      <div id='a' style={{height: 100, width: 100, margin: 10, backgroundColor: '#eee'}}>我是a</div>
-      <div id='a' style={{height: 100, width: 100, margin: 10, backgroundColor: '#eee'}}>我也是a</div>
+      {/* <div id='a' style={{height: 100, width: 100, margin: 10, backgroundColor: '#eee'}}>我是a</div>
+      <div id='a' style={{height: 100, width: 100, margin: 10, backgroundColor: '#eee'}}>我也是a</div> */}
       <Button>test</Button>
       {list.map(item => <div key={item} style={{height: 100, width: 100, margin: 10, backgroundColor: '#eee'}}>{item}</div>)}
       

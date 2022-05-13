@@ -2,7 +2,7 @@ import React, { useCallback, useState, useEffect, useRef } from "react";
 import { Radio, Input, RadioChangeEvent, message, Switch, Button } from 'antd';
 import CreateEventModal from "./CreateEventModal";
 import { useModal } from "./useModal";
-import { BASE_URL } from "../const";
+import { TARGET_URL } from "../const";
 import { addEvent } from "../api";
 import moment from 'moment';
 
@@ -17,7 +17,7 @@ const Octopus = () => {
   const handleOctModeChange = useCallback((e: RadioChangeEvent) => { setOctMode(e.target.value); }, []);
 
   // 填写目标网址
-  const [targetUrl, setTargetUrl] = useState<string>('http://localhost:3001/');
+  const [targetUrl, setTargetUrl] = useState<string>(TARGET_URL);
   const handleUrlSearch = useCallback((val: string) => {
     setIsIframeLoaded(false);
     setTargetUrl(val);

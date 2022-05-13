@@ -3,7 +3,8 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
-import './octopus-web-sdk/index';
+// import './octopus-web-sdk/index';
+import './octopus-web-sdk/dist/bundle';
 
 // 引入 antd 样式
 import 'antd/dist/antd.css';

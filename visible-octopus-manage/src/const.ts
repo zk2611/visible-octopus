@@ -1,1 +1,2 @@
-export const BASE_URL = 'http://localhost:9000';
+export const TARGET_URL = document.location.host.includes('localhost') ? 'http://localhost:3001' : 'http://81.70.56.84:3001';
+export const SERVER_URL = document.location.host.includes('localhost') ? 'http://localhost:9000' : 'http://81.70.56.84:9000';
