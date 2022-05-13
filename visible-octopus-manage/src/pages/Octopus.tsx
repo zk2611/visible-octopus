@@ -97,7 +97,7 @@ const Octopus = () => {
     <CreateEventModal initialValues={initialValues} visible={modalVisible} onOk={handleCreateEventOk} onCancel={closeModal} />
 
     <div style={{padding: '1rem', display: 'flex', flexDirection: 'column', height: '100vh'}}>
-      <h1>可视化埋点</h1>
+      <h1>可视化埋点 Demo 0.1</h1>
       <div style={{display: 'flex', alignItems: 'center'}}>
         <div style={{flex: 1, display: 'flex'}}>
           <Radio.Group optionType="button" buttonStyle="solid" options={OCT_MODE_OPTIONS} onChange={handleOctModeChange} value={octMode} />
