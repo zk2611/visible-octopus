@@ -17,11 +17,13 @@ mongoose.connect('mongodb://localhost/octopus_event', {
 const Schema = mongoose.Schema
 const OctopusEvent = new Schema({
   //这里是数据库自己创建的属性名：他的属性类型   如：
-  'id': { type: String, require: true },
-  'eventName': { type: String, require: true },
-  'xpath': { type: String, require: true },
+  'id':       { type: String,  require: true },
+  'name':     { type: String,  require: true },
+  'type':     { type: String,  require: true },
+  'xpath':    { type: String,  require: true },
   'isHidden': { type: Boolean, require: false },
-  'url': { type: String, require: true },
+  'url':      { type: String,  require: true },
+  'desc':     { type: String,  require: false },
 })
 
 const Event = mongoose.model('Event', OctopusEvent);

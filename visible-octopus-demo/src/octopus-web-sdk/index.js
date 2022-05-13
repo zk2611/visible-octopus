@@ -11,11 +11,10 @@ class AutoOctopus {
     this.targetWindow = null;
     this.targetOrigin = null;
     this.eventList = [];
+    this.observer = null;
 
     this.initMessageListener();
     this.initIntersectionObserver();
-    this.initClickListener();
-
     this.init();
   }
 
@@ -56,8 +55,46 @@ class AutoOctopus {
     });
   }
 
+
+
+  initIntersectionObserver = () => {
+    const options = {
+      root: null,
+      rootMargin: '0px',
+      threshold: 1.0
+    }
+    this.observer = new IntersectionObserver(this.intersectionObserverCallback, options);
+  }
+
+  intersectionObserverCallback = (entries, observer) => {
+    // console.log('intersectionObserverCallback', entries);
+    console.log('intersectionObserverCallback', observer)
+    entries.forEach(entry => {
+      console.log('entry', entry, entry.time, entry.isIntersecting, entry.target.innerText)
+      if (entry.isIntersecting) {
+        const logData = this.getLogDataByEl(entry.target);
+        console.log('show logData', logData);
+        if (this.mode !== MODE.OCTOPUS) {
+          this.targetWindow.postMessage({ type: 'report', logData }, this.targetOrigin);
+        }
+        // 上报曝光埋点
+      }
+      // Each entry describes an intersection change for one observed target element:
+      // entry.boundingClientRect
+      // entry.intersectionRatio
+      // entry.intersectionRect
+      // entry.isIntersecting
+      // entry.rootBounds
+      // entry.target
+      // entry.time
+    });
+  }
+
+
   init = () => {
+    console.log('scrollArea', document.querySelector('#scrollArea'));
     this.getEventList();
+    // 监听 onclick 事件
     eventUtil.addEvent(document.body, 'click', this.clickHandler);
   }
 
@@ -120,7 +157,7 @@ class AutoOctopus {
     try {
       const targetEl = eventUtil.getTarget(e);
       const event = eventUtil.getEvent(e);
-      const logData = this.getLogData(event);
+      const logData = this.getLogDataByEvent(event);
       const { xpath } = logData;
       console.log('xpath', xpath);
       // console.log(logData)
@@ -130,18 +167,18 @@ class AutoOctopus {
         eventUtil.preventDefault(e);
         console.log('埋点模式')
         this.highlightHoverElement(event, targetEl);
-        this.targetWindow.postMessage({ logData }, this.targetOrigin);
+        this.targetWindow.postMessage({ type: 'log', logData }, this.targetOrigin);
       }
       // 非埋点模式下，直接上报埋点信息
       else {
         console.log('非埋点模式')
         // 获取元素的xpath，并和已有xpath列表比对，存在则上报信息
-        if (this.eventList.some(event => {
-          console.log(event, xpath, event.xpath === xpath)
-          return event.xpath === xpath
-        })) {
+        const eventData = this.eventList.filter(event => event.type === 'click').find(event => event.xpath === xpath);
+        if (eventData) {
+          console.log('eventData', eventData);
           console.log('上报埋点信息', logData);
           reportData('http://localhost:9000/reportData/', logData);
+          this.targetWindow.postMessage({ type: 'report', logData, eventData }, this.targetOrigin);
         }
 
       }
@@ -218,7 +255,45 @@ class AutoOctopus {
 
 
 
-  getLogData (e, data = {}) {
+  getLogDataByEl (targetEl, data = {}) {
+
+    const platform = getPlatform(navigator.userAgent);
+
+    const nodeName = targetEl.nodeName && targetEl.nodeName.toLocaleLowerCase() || '';
+    const text = targetEl.innerText || targetEl.value;
+    const xpath = getMXPath(targetEl) || '';
+    const rect = getBoundingClientRect(targetEl);
+    const documentEl = document.documentElement || document.body.parentNode;
+    const scrollX = (documentEl && typeof documentEl.scrollLeft === 'number' ? documentEl : document.body).scrollLeft;
+    const scrollY = (documentEl && typeof documentEl.scrollTop === 'number' ? documentEl : document.body).scrollTop;
+    // const pageX = event.pageX || event.clientX + scrollX;
+    // const pageY = event.pageY || event.clientY + scrollY;
+
+    const eventData = {
+      ...data,
+      // event type
+      et: 'show',
+      // event desc
+      ed: 'auto_show',
+      text: text,
+      nodeName,
+      xpath,
+      // offsetX: ((pageX - rect.left - scrollX) / rect.width).toFixed(6),
+      // offsetY: ((pageY - rect.top - scrollY) / rect.height).toFixed(6),
+      // pageX,
+      // pageY,
+      scrollX,
+      scrollY,
+      left: rect.left,
+      top: rect.top,
+      width: rect.width,
+      height: rect.height,
+    }
+
+    return eventData;
+  }
+
+  getLogDataByEvent (e, data = {}) {
     const event = eventUtil.getEvent(e);
     const targetEl = eventUtil.getTarget(e);
 
@@ -243,12 +318,12 @@ class AutoOctopus {
       text: text,
       nodeName,
       xpath,
-      offsetX: ((pageX - rect.left - scrollX) / rect.width).toFixed(6),
-      offsetY: ((pageY - rect.top - scrollY) / rect.height).toFixed(6),
-      pageX,
-      pageY,
-      scrollX,
-      scrollY,
+      // offsetX: ((pageX - rect.left - scrollX) / rect.width).toFixed(6),
+      // offsetY: ((pageY - rect.top - scrollY) / rect.height).toFixed(6),
+      // pageX,
+      // pageY,
+      // scrollX,
+      // scrollY,
       left: rect.left,
       top: rect.top,
       width: rect.width,
@@ -266,6 +341,7 @@ class AutoOctopus {
     console.log('getEventList', data)
     if (code === 200) {
       this.eventList = [...data];
+      this.observeEl();
       if (this.isHighlight) this.highlightOctopusEl();
     } else {
       console.log(msg)
@@ -303,6 +379,14 @@ class AutoOctopus {
     //   }
     // })
     // this.eventList = eventList;
+  }
+
+  observeEl = () => {
+    this.eventList.filter(event => event.type === 'show').forEach(event => {
+      const { xpath } = event;
+      let el = getElByXPath(xpath);
+      el && this.observer.observe(el);
+    });
   }
 }
 

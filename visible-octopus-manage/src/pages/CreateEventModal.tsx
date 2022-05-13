@@ -1,5 +1,5 @@
 import React, { useCallback } from "react";
-import { Button, Form, Input, Modal, ModalFuncProps } from "antd";
+import { Button, Form, Input, Modal, ModalFuncProps, Radio } from "antd";
 import { useForm } from "antd/lib/form/Form";
 import { createRandomId } from "../utils/util";
 
@@ -13,6 +13,11 @@ interface CreateEventModalProps extends ModalFuncProps {
 const CreateEventModal = ({visible, onOk, onCancel, initialValues = {}, ...rest}: CreateEventModalProps) => {
 
   const [form] = useForm();
+
+  const options = [
+    { value: 'click', label: '点击' },
+    { value: 'show',  label: '曝光' },
+  ];
 
   const handleCancel = useCallback(() => {
     form.resetFields();
@@ -44,11 +49,20 @@ const CreateEventModal = ({visible, onOk, onCancel, initialValues = {}, ...rest}
     >
       <Form labelCol={{ span: 4 }} wrapperCol={{ span: 20 }} labelAlign="right" preserve={false}
         form={form}>
-        <Form.Item label="事件名称" name="eventName" rules={[{ required: true, message: '请填写事件名称' }]}>
+        <Form.Item label="事件名称" name="name" rules={[{ required: true, message: '请填写事件名称' }]}>
           <Input />
         </Form.Item>
         <Form.Item initialValue={initialValues?.xpath} label="xpath" name="xpath">
-          <Input readOnly />
+          <Input disabled readOnly />
+        </Form.Item>
+        <Form.Item label="事件类型" name="type" rules={[{ required: true, message: '请选择事件类型' }]}>
+          <Radio.Group options={options}></Radio.Group>
+        </Form.Item>
+        <Form.Item initialValue={document.location.href} label="url" name="url">
+          <Input disabled readOnly />
+        </Form.Item>
+        <Form.Item label="事件描述" name="desc" >
+          <Input.TextArea rows={2} />
         </Form.Item>
       </Form>
     </Modal>

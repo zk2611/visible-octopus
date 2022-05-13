@@ -1,9 +1,10 @@
 import React, { useCallback, useState, useEffect, useRef } from "react";
-import { Radio, Input, RadioChangeEvent, message, Switch } from 'antd';
+import { Radio, Input, RadioChangeEvent, message, Switch, Button } from 'antd';
 import CreateEventModal from "./CreateEventModal";
 import { useModal } from "./useModal";
 import { BASE_URL } from "../const";
 import { addEvent } from "../api";
+import moment from 'moment';
 
 const OCT_MODE_OPTIONS = [
   { label: '埋点模式', value: 'octopus' },
@@ -29,7 +30,17 @@ const Octopus = () => {
       if (e.data && typeof e.data === 'object' && 'logData' in e.data) {
         // message.info(JSON.stringify(e.data.logData));
         console.log(e.data.logData.xpath)
-        openModal({ xpath: e.data.logData.xpath });
+        if (e.data.type === 'report') {
+          setLogList((preLog) => [...preLog, {
+            type: 'log',
+            text: e.data.logData,
+            date: moment().format('YYYY-MM-DD HH:mm:ss'),
+            event: e.data.eventData,
+          }]);
+        }
+        if (e.data.type === 'log') {
+          openModal({ xpath: e.data.logData.xpath });
+        }
       }
     }
     window.addEventListener('message', receiveMessage);
@@ -37,6 +48,7 @@ const Octopus = () => {
       window.removeEventListener('message', receiveMessage);
     };
   }, []);
+
 
   const [isHighlightEl, setIsHighlightEl] = useState<boolean>(false);
   const handleHighlightCheck = useCallback((isCheck: boolean) => { setIsHighlightEl(isCheck); }, []);
@@ -70,6 +82,16 @@ const Octopus = () => {
     }
   }, []);
 
+  interface Log {
+    text: string;
+    type: string;
+    date: string;
+    event: string;
+  }
+  const logContainer = useRef<HTMLDivElement>(null);
+  const [logList, setLogList] = useState<Log[]>([]);
+  useEffect(() => { logList.length && logContainer && logContainer.current?.lastElementChild?.scrollIntoView({behavior: "smooth", block: "end"}); }, [logList]);
+  const clearLog = useCallback(() => { setLogList([]); }, []);
 
   return (<>
     <CreateEventModal initialValues={initialValues} visible={modalVisible} onOk={handleCreateEventOk} onCancel={closeModal} />
@@ -83,8 +105,23 @@ const Octopus = () => {
         </div>
         <span style={{marginRight: 10}}>高亮已埋点元素</span><Switch onChange={handleHighlightCheck} />
       </div>
-      <div style={{flex: 1, padding: '.5rem'}}>
-        <iframe id="iframeEl" onLoad={handleIframeLoad} ref={iframeEl} width="100%" height="100%" src={targetUrl} style={{border: '1px solid #eee', borderRadius: '4px'}} />
+      <div style={{display: 'flex', flex: 1, padding: '.5rem', overflow: 'hidden'}}>
+        <div style={{flex: 1, marginRight: 10}}>
+          <iframe id="iframeEl" onLoad={handleIframeLoad} ref={iframeEl} width="100%" height="100%" src={targetUrl} style={{border: '1px solid #eee', borderRadius: '4px'}} />
+        </div>
+        <div style={{width: '30rem', border: '1px solid #eee', padding: '1rem', display: 'flex', flexDirection: 'column'}}>
+          <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '1rem', borderBottom: '1px solid #eee'}}>
+            <div>埋点上报日志</div>
+            <Button size="small" type="primary" onClick={clearLog}>clear</Button>
+          </div>
+          <div ref={logContainer} style={{overflowY: 'auto'}}>
+            {logList.map(log => <div style={{textAlign: 'left', whiteSpace: 'pre', padding: '.5rem', borderBottom: '1px dashed #bbb', lineHeight: 1.2}}>
+              <div>{log.date}</div>
+              <div>{JSON.stringify(log.text, null, 10)}</div>
+              <div>{JSON.stringify(log.event, null, 10)}</div>
+            </div>)}
+          </div>
+        </div>
       </div>
     </div>
   </>);
