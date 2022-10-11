@@ -2,8 +2,9 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const mongoose = require('mongoose');
+require('dotenv').config({ path: '.env' })
 
-mongoose.connect('mongodb://localhost/octopus_event', {
+mongoose.connect(`mongodb://${process.env.USERNAME}:${process.env.PASSWORD}@localhost/octopus_event`, {
   useNewUrlParser: true,
   useUnifiedTopology: true
 }, function (error) {
